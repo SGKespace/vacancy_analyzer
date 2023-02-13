@@ -6,14 +6,36 @@ from itertools import count
 
 def main():
     programming_languages = {'Java', 'Javascript', 'Python', 'Ruby', 'PHP', 'C++', 'C#'}
-    list_count_programming_language = programming_language_count(programming_languages)
-    print(list_count_programming_language)
+    # list_count_programming_language = programming_language_count(programming_languages)
+    # print(list_count_programming_language)
+    a = programming_language_salary(programming_languages)
+    print(a)
+
+
+def programming_language_salary(programming_languages):  # зарплаты
+    language_salary = {}
+    for programming_language in programming_languages:  # Бежим по списку языков
+        search_text = f'{programming_language}'
+        town = 1
+        url = 'https://api.hh.ru/vacancies'
+        params = {'text': f'{search_text}', 'search_field': 'name', 'area': town}
+        response = requests.get(url, params=params)
+        response.raise_for_status()
+        programming_language_salary = response.json()
+        cashh = {}
+        for number, vacancie in enumerate(programming_language_salary['items']):
+
+            cashh[number] = vacancie['salary']
+
+            language_salary[f'{programming_language}'] = cashh
+
+    return language_salary
+
 
 def programming_language_count(programming_languages):
     language_counts = {}
     for programming_language in programming_languages:  # Бежим по списку языков
-        search_text = f'Программист {programming_language}'
-        count = 0
+        search_text = f'{programming_language}'
         town = 1
         url = 'https://api.hh.ru/vacancies'
         params = {'text': f'{search_text}', 'search_field': 'name', 'area': town}
@@ -36,9 +58,6 @@ def get_hh_vacancies(search_text, town=1):  # Все вакансии Москв
         if page >= vacancies['pages'] - 1:
             break
     return all_vacancies
-
-
-
 
 
 if __name__ == '__main__':
