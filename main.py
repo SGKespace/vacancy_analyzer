@@ -6,10 +6,33 @@ from itertools import count
 
 def main():
     programming_languages = {'Java', 'Javascript', 'Python', 'Ruby', 'PHP', 'C++', 'C#'}
-    # list_count_programming_language = programming_language_count(programming_languages)
-    # print(list_count_programming_language)
-    a = programming_language_salary(programming_languages)
-    print(a)
+    search_text = 'Программист Python'
+    vacancies = get_hh_vacancies(search_text, town=1)
+    print(predict_rub_salary(vacancies))
+
+
+def predict_rub_salary(vacancies):
+    average_salary = []
+    for vacancy_page in vacancies:
+        for vacancy in vacancy_page['items']:
+            salary = vacancy['salary']
+            if not salary or salary['currency'] != 'RUR':
+                continue
+            payrol = calculation_payroll(salary['from'], salary['to'])
+            average_salary.append(payrol)
+    try:
+        return sum(average_salary)//len(average_salary)
+    except:
+        return 0, 0
+
+
+def calculation_payroll(salary_from, salary_to):
+    if salary_from and salary_to:
+        return (salary_from + salary_to) // 2
+    if salary_from and not salary_to:
+        return int(salary_from * 1.2)
+    if not salary_from and salary_to:
+        return int(salary_to * 0.8)
 
 
 def programming_language_salary(programming_languages):  # зарплаты
@@ -24,11 +47,8 @@ def programming_language_salary(programming_languages):  # зарплаты
         programming_language_salary = response.json()
         cashh = {}
         for number, vacancie in enumerate(programming_language_salary['items']):
-
             cashh[number] = vacancie['salary']
-
             language_salary[f'{programming_language}'] = cashh
-
     return language_salary
 
 
