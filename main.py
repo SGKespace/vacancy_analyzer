@@ -5,13 +5,33 @@ from itertools import count
 
 
 def main():
+    programming_languages_statistic()
+
+
+def programming_languages_statistic():
     programming_languages = {'Java', 'Javascript', 'Python', 'Ruby', 'PHP', 'C++', 'C#'}
-    search_text = 'Программист Python'
-    vacancies = get_hh_vacancies(search_text, town=1)
-    print(predict_rub_salary(vacancies))
+    programming_language_counts = programming_language_count(programming_languages)  # количество вакансий {'Python': 580, 'C++': 444, 'Javascript': 335, 'Ruby': 45, 'Java': 897, 'PHP': 542, 'C#': 356}
+    print(programming_language_counts)
+
+    programming_salarys = {}
+    for programming_language in programming_languages:
+        search_text = f'{programming_language}'
+        vacancies = get_hh_vacancies(search_text, town=1)
+        current_salary = predict_rub_salary(vacancies)
+        programming_salarys[programming_language] = {"vacancies_processed": current_salary[0], "average_salary": current_salary[1]}
+    print(programming_salarys)
+
+    programming_language_statistics = {}
+    for language in programming_language_counts:
+        programming_language_statistics[language] = {'vacancies_found': programming_language_counts[language],
+                                                     'vacancies_processed': programming_salarys[language][
+                                                         'vacancies_processed'],
+                                                     'average_salary': programming_salarys[language]['average_salary']}
+    print(programming_language_statistics)
 
 
-def predict_rub_salary(vacancies):
+
+def predict_rub_salary(vacancies):  # средняя зарплата по вакансии - как сформирована
     average_salary = []
     for vacancy_page in vacancies:
         for vacancy in vacancy_page['items']:
@@ -21,7 +41,7 @@ def predict_rub_salary(vacancies):
             payrol = calculation_payroll(salary['from'], salary['to'])
             average_salary.append(payrol)
     try:
-        return sum(average_salary)//len(average_salary)
+        return len(average_salary), sum(average_salary)//len(average_salary)
     except:
         return 0, 0
 
@@ -33,23 +53,6 @@ def calculation_payroll(salary_from, salary_to):
         return int(salary_from * 1.2)
     if not salary_from and salary_to:
         return int(salary_to * 0.8)
-
-
-def programming_language_salary(programming_languages):  # зарплаты
-    language_salary = {}
-    for programming_language in programming_languages:  # Бежим по списку языков
-        search_text = f'{programming_language}'
-        town = 1
-        url = 'https://api.hh.ru/vacancies'
-        params = {'text': f'{search_text}', 'search_field': 'name', 'area': town}
-        response = requests.get(url, params=params)
-        response.raise_for_status()
-        programming_language_salary = response.json()
-        cashh = {}
-        for number, vacancie in enumerate(programming_language_salary['items']):
-            cashh[number] = vacancie['salary']
-            language_salary[f'{programming_language}'] = cashh
-    return language_salary
 
 
 def programming_language_count(programming_languages):
