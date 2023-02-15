@@ -1,5 +1,6 @@
 # main
-Скрипт анализа вакансии в Москве по запрашиваемым профессиям с HeadHunter и SuperJob
+Скрипт анализа вакансий программиста в Москве по востребованным языкам программирования ([Рейтинг языков по версии Github](https://habr.com/ru/post/310262/)) с HeadHunter и SuperJob.
+[Общая информация по API hh.ru](https://github.com/hhru/api/blob/master/docs/general.md)
 
 
 ## Требования к окружению
