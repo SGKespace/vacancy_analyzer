@@ -7,17 +7,24 @@ import os
 
 def main():
     load_dotenv()
+    town = 4  # 'Москва' так то же работает
+    keyword = 'программист'
     superjob_token = os.environ['SUPERJOB_TOKEN']
     url = 'https://api.superjob.ru/2.0/vacancies/'
     headers = {
         'X-Api-App-Id': f'{superjob_token}',
         'Content-Type': 'application / x - www - form - urlencoded'}
 
-    response = requests.get(url, headers=headers)
+    params = {
+        'town': town,
+        'keywords': keyword
+    }
+
+    response = requests.get(url, headers=headers, params=params)
     response.raise_for_status()
     vacancy_page = response.json()['objects']
     for vacancie in vacancy_page:
-       print(vacancie['profession'])
+       print(vacancie['profession'], )
 
 
 def programming_languages_statistic(): # общая статистика хх ру
