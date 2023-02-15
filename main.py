@@ -6,28 +6,66 @@ from dotenv import load_dotenv
 import os
 
 def main():
+    sj_programming_languages_statistic()
+
+
+def sj_programming_languages_statistic():  # общая статистика sj ру
+    programming_languages = {'Java', 'Javascript', 'Python', 'Ruby', 'PHP', 'C++', 'C#'}
     load_dotenv()
-    town = 4  # 'Москва' так то же работает
-    keyword = 'программист'
     superjob_token = os.environ['SUPERJOB_TOKEN']
+    programming_language_statistics = {}
+    for programming_language in programming_languages:
+        search_text = f'программист {programming_language}'
+        vacancy_pages = get_sj_vacancies(search_text, superjob_token, town=4, count_on_page=20)
+        statistic = predict_rub_salary_for_superJob(vacancy_pages)
+        programming_language_statistics[programming_language] = {'vacancies_found': statistic[0],
+                                                     'vacancies_processed': statistic[1],
+                                                     'average_salary': statistic[2]}
+    print(programming_language_statistics)
+    return programming_language_statistics
+
+
+def predict_rub_salary_for_superJob(vacancy_pages):
+    average_salary = []
+    for vacancy_page in vacancy_pages:
+        for vacancy in vacancy_page['objects']:
+            if vacancy['currency'] != 'rub':
+                continue
+            salary = calculation_payroll(vacancy['payment_from'], vacancy['payment_to'])
+            if not salary:
+                continue
+            average_salary.append(salary)
+    try:
+        # print(vacancy_page['total'], len(average_salary), sum(average_salary)//len(average_salary))
+        return vacancy_page['total'], len(average_salary), sum(average_salary)//len(average_salary)
+    except:
+        return vacancy_page['total'], 0, 0
+
+
+def get_sj_vacancies(search_text, superjob_token, town=4, count_on_page=20):  # town = 'Москва' так то же работает
+    keyword = search_text
     url = 'https://api.superjob.ru/2.0/vacancies/'
     headers = {
         'X-Api-App-Id': f'{superjob_token}',
         'Content-Type': 'application / x - www - form - urlencoded'}
+    vacancy_pages = []
+    for page in count(0):
+        params = {
+            'town': town,
+            'keywords': keyword,
+            'page': page,
+        }
 
-    params = {
-        'town': town,
-        'keywords': keyword
-    }
-
-    response = requests.get(url, headers=headers, params=params)
-    response.raise_for_status()
-    vacancy_page = response.json()['objects']
-    for vacancie in vacancy_page:
-       print(vacancie['profession'], )
+        response = requests.get(url, headers=headers, params=params)
+        response.raise_for_status()
+        vacancy_page = response.json()
+        vacancy_pages.append(vacancy_page)
+        if page >= vacancy_page['total'] / ((page + 1) * count_on_page):
+            break
+    return vacancy_pages
 
 
-def programming_languages_statistic(): # общая статистика хх ру
+def hh_programming_languages_statistic():  # общая статистика хх ру
     programming_languages = {'Java', 'Javascript', 'Python', 'Ruby', 'PHP', 'C++', 'C#'}
     programming_language_counts = programming_language_count(programming_languages)  # количество вакансий
     programming_salarys = {}
@@ -36,7 +74,6 @@ def programming_languages_statistic(): # общая статистика хх р
         vacancies = get_hh_vacancies(search_text, town=1)
         current_salary = predict_rub_salary(vacancies)
         programming_salarys[programming_language] = {"vacancies_processed": current_salary[0], "average_salary": current_salary[1]}
-
 
     programming_language_statistics = {}
     for language in programming_language_counts:
@@ -47,7 +84,6 @@ def programming_languages_statistic(): # общая статистика хх р
 
     print(programming_language_statistics)
     return programming_language_statistics
-
 
 
 def predict_rub_salary(vacancies):  # средняя зарплата по вакансии - как сформирована
@@ -95,8 +131,8 @@ def get_hh_vacancies(search_text, town=1):  # Все вакансии Москв
         params = {'text': f'{search_text}', 'search_field': 'name', 'area': town, 'page': page}
         response = requests.get(url, params=params)
         response.raise_for_status()
-        vacancies = response.json()
-        all_vacancies.append(vacancies)
+        vacancie = response.json()
+        all_vacancies.append(vacancie)
         if page >= vacancies['pages'] - 1:
             break
     return all_vacancies
