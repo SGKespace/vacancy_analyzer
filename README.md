@@ -1,6 +1,6 @@
 # main
 Скрипт анализа вакансий программиста в Москве по востребованным языкам программирования ([Рейтинг языков по версии Github](https://habr.com/ru/post/310262/)) с HeadHunter и SuperJob.
-[Общая информация по API hh.ru](https://github.com/hhru/api/blob/master/docs/general.md). [API SuperJob](https://api.superjob.ru/) - Требуется регистрация для получения Secret key, который потом указывается в .env.
+[Общая информация по API hh.ru](https://github.com/hhru/api/blob/master/docs/general.md)  и   [API SuperJob](https://api.superjob.ru/) - Требуется регистрация для получения Secret key, который потом указывается в .env.
 
 
 ## Требования к окружению
