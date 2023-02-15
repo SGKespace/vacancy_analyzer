@@ -11,16 +11,18 @@ def main():
     table_title = 'SuperJob Moscow'
     sj_statistic = sj_programming_languages_statistic()
     print_vacancies_statistic(sj_statistic, table_title)
+    table_title = 'HeadHunter Moscow'
+    hh_statistic = hh_programming_languages_statistic()
+    print_vacancies_statistic(hh_statistic, table_title)
 
 
 def print_vacancies_statistic(vacancies_stat, table_title):
     profession_statistics = [['Язык программирования', 'Вакансий найдено', 'Вакансий обработано', 'Средняя зарплата']]
     for language, statistic in vacancies_stat.items():
         profession_statistics.append([language, statistic['vacancies_found'], statistic['vacancies_processed'], statistic['average_salary']])
-    table = AsciiTable(profession_statistic)
+    table = AsciiTable(profession_statistics)
     table.title = table_title
     print(table.table)
-
 
 
 def sj_programming_languages_statistic():  # общая статистика sj ру
@@ -35,7 +37,6 @@ def sj_programming_languages_statistic():  # общая статистика sj 
         programming_language_statistics[programming_language] = {'vacancies_found': statistic[0],
                                                      'vacancies_processed': statistic[1],
                                                      'average_salary': statistic[2]}
-    print(programming_language_statistics)
     return programming_language_statistics
 
 
@@ -50,7 +51,6 @@ def predict_rub_salary_for_superJob(vacancy_pages):
                 continue
             average_salary.append(salary)
     try:
-        # print(vacancy_page['total'], len(average_salary), sum(average_salary)//len(average_salary))
         return vacancy_page['total'], len(average_salary), sum(average_salary)//len(average_salary)
     except:
         return vacancy_page['total'], 0, 0
@@ -95,8 +95,6 @@ def hh_programming_languages_statistic():  # общая статистика х�
                                                      'vacancies_processed': programming_salarys[language][
                                                          'vacancies_processed'],
                                                      'average_salary': programming_salarys[language]['average_salary']}
-
-    print(programming_language_statistics)
     return programming_language_statistics
 
 
@@ -147,7 +145,7 @@ def get_hh_vacancies(search_text, town=1):  # Все вакансии Москв
         response.raise_for_status()
         vacancie = response.json()
         all_vacancies.append(vacancie)
-        if page >= vacancies['pages'] - 1:
+        if page >= vacancie['pages'] - 1:
             break
     return all_vacancies
 
