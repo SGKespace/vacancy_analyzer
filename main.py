@@ -4,9 +4,23 @@ from dateutil.parser import parse
 from itertools import count
 from dotenv import load_dotenv
 import os
+from terminaltables import AsciiTable
+
 
 def main():
-    sj_programming_languages_statistic()
+    table_title = 'SuperJob Moscow'
+    sj_statistic = sj_programming_languages_statistic()
+    print_vacancies_statistic(sj_statistic, table_title)
+
+
+def print_vacancies_statistic(vacancies_stat, table_title):
+    profession_statistics = [['Язык программирования', 'Вакансий найдено', 'Вакансий обработано', 'Средняя зарплата']]
+    for language, statistic in vacancies_stat.items():
+        profession_statistics.append([language, statistic['vacancies_found'], statistic['vacancies_processed'], statistic['average_salary']])
+    table = AsciiTable(profession_statistic)
+    table.title = table_title
+    print(table.table)
+
 
 
 def sj_programming_languages_statistic():  # общая статистика sj ру
