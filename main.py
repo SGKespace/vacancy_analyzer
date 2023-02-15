@@ -2,24 +2,34 @@ import requests
 import datetime
 from dateutil.parser import parse
 from itertools import count
-
+from dotenv import load_dotenv
+import os
 
 def main():
-    programming_languages_statistic()
+    load_dotenv()
+    superjob_token = os.environ['SUPERJOB_TOKEN']
+    url = 'https://api.superjob.ru/2.0/vacancies/'
+    headers = {
+        'X-Api-App-Id': f'{superjob_token}',
+        'Content-Type': 'application / x - www - form - urlencoded'}
+
+    response = requests.get(url, headers=headers)
+    response.raise_for_status()
+    vacancy_page = response.json()['objects']
+    for vacancie in vacancy_page:
+       print(vacancie['profession'])
 
 
-def programming_languages_statistic():
+def programming_languages_statistic(): # общая статистика хх ру
     programming_languages = {'Java', 'Javascript', 'Python', 'Ruby', 'PHP', 'C++', 'C#'}
-    programming_language_counts = programming_language_count(programming_languages)  # количество вакансий {'Python': 580, 'C++': 444, 'Javascript': 335, 'Ruby': 45, 'Java': 897, 'PHP': 542, 'C#': 356}
-    print(programming_language_counts)
-
+    programming_language_counts = programming_language_count(programming_languages)  # количество вакансий
     programming_salarys = {}
     for programming_language in programming_languages:
         search_text = f'{programming_language}'
         vacancies = get_hh_vacancies(search_text, town=1)
         current_salary = predict_rub_salary(vacancies)
         programming_salarys[programming_language] = {"vacancies_processed": current_salary[0], "average_salary": current_salary[1]}
-    print(programming_salarys)
+
 
     programming_language_statistics = {}
     for language in programming_language_counts:
@@ -27,7 +37,9 @@ def programming_languages_statistic():
                                                      'vacancies_processed': programming_salarys[language][
                                                          'vacancies_processed'],
                                                      'average_salary': programming_salarys[language]['average_salary']}
+
     print(programming_language_statistics)
+    return programming_language_statistics
 
 
 
