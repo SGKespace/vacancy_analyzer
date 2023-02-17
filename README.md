@@ -14,6 +14,8 @@ Python 3.xx и выше (должен быть уже установлен)
 
 requests == 2.24.0
 
+python-dotenv == 0.21.1
+
 terminaltables == 3.1.10
 
 
