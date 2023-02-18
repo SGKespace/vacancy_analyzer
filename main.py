@@ -14,10 +14,10 @@ def main():
     load_dotenv()
     superjob_token = os.environ['SUPERJOB_TOKEN']
     table_title = 'SuperJob Moscow'
-    sj_statistic = is_statistics_sj(superjob_token)
+    sj_statistic = get_statistics_sj(superjob_token)
     print_vacancies_statistic(sj_statistic, table_title)
     table_title = 'HeadHunter Moscow'
-    hh_statistic = is_statistics_hh()
+    hh_statistic = get_statistics_hh()
     print_vacancies_statistic(hh_statistic, table_title)
 
 
@@ -35,7 +35,7 @@ def print_vacancies_statistic(vacancies_stat, table_title):
     print(table.table)
 
 
-def is_statistics_sj(superjob_token):
+def get_statistics_sj(superjob_token):
     """ Статистика вакансий прогрммиста по языкам программирования из ресурса SuperJob
     :param superjob_token: Токен для доступа к API SuperJob
     :return programming_language_statistics:
@@ -46,21 +46,20 @@ def is_statistics_sj(superjob_token):
     for programming_language in programming_languages:
         search_text = f'программист {programming_language}'
         vacancy_pages = get_sj_vacancies(search_text, superjob_token, town=4, count_on_page=20)
-        statistic = is_salary_statistic_superJob(vacancy_pages)
-        programming_language_statistics[programming_language] = {'vacancies_found': statistic[0],
-                                                     'vacancies_processed': statistic[1],
-                                                     'average_salary': statistic[2]}
+        statistic = get_salary_statistic_superjob(vacancy_pages)
+        programming_language_statistics[programming_language] = statistic
+
     return programming_language_statistics
 
 
-def is_salary_statistic_superJob(vacancy_pages):
+def get_salary_statistic_superjob(vacancy_pages):
     """ Статистика вакансий прогрммиста по языку программирования из ресурса SuperJob
-    :param vacancy_pages: Токен для доступа к API SuperJob
-    :return vacancy_page:
+    :param vacancy_pages:
+    :return Статистику
     :rtype: dict
     """
 
-    salary_averages = []
+    average_salary = []
     for vacancy_page in vacancy_pages:
         for vacancy in vacancy_page['objects']:
             if vacancy['currency'] != 'rub':
@@ -68,11 +67,20 @@ def is_salary_statistic_superJob(vacancy_pages):
             salary = calculate_average_wage(vacancy['payment_from'], vacancy['payment_to'])
             if not salary:
                 continue
-            salary_averages.append(salary)
+            average_salary.append(salary)
+
+    vacancies_found = vacancy_page['total']
     try:
-        return vacancy_page['total'], len(salary_averages), sum(salary_averages)//len(salary_averages)
+        vacancies_processed = len(average_salary)
+        average_salary = sum(average_salary)//len(average_salary)
     except ZeroDivisionError:
-        return vacancy_page['total'], 0, 0
+        vacancies_processed = 0
+        average_salary = 0
+
+    return {'vacancies_found': f'{vacancies_found}',
+            'vacancies_processed': f'{vacancies_processed}',
+             'average_salary': f'{average_salary}'
+            }
 
 
 def get_sj_vacancies(search_text, superjob_token, town=4, count_on_page=20):
@@ -106,7 +114,7 @@ def get_sj_vacancies(search_text, superjob_token, town=4, count_on_page=20):
     return vacancy_pages
 
 
-def is_statistics_hh():
+def get_statistics_hh():
     """ Вакансии прогрммиста по языкам программирования из ресурса HeadHunter
         :return programming_language_statistics:
         :rtype: dict
@@ -118,31 +126,39 @@ def is_statistics_hh():
     for programming_language in programming_languages:
         search_text = f'{programming_language}'
         vacancies = get_hh_vacancies(search_text, town=1)
-        current_salary = is_salary_statistic_hh(vacancies)
-        programming_language_count = vacancies[0]['found']
-        programming_language_statistics[programming_language] = {'vacancies_found': programming_language_count,"vacancies_processed": current_salary[0], "average_salary": current_salary[1]}
+        current_salary = get_salary_statistic_hh(vacancies)
+        programming_language_statistics[programming_language] = current_salary
     return programming_language_statistics
 
 
-def is_salary_statistic_hh(vacancies):
+def get_salary_statistic_hh(vacancies):
     """ Статистика заработных плат
         :param vacancies: Вакансии программиста по языку программирования
         :return Количество вакансий, средняя заработная пплата
         :rtype: dict
     """
 
-    salary_averages = []
+    average_salary = []
     for vacancy_page in vacancies:
         for vacancy in vacancy_page['items']:
             salary = vacancy['salary']
             if not salary or salary['currency'] != 'RUR':
                 continue
             payrol = calculate_average_wage(salary['from'], salary['to'])
-            salary_averages.append(payrol)
+            average_salary.append(payrol)
+
+    vacancies_found = vacancy_page['found']
+
     try:
-        return len(salary_averages), sum(salary_averages)//len(salary_averages)
+        vacancies_processed = len(average_salary)
+        average_salary = sum(average_salary)//len(average_salary)
     except ZeroDivisionError:
-        return 0, 0
+        vacancies_processed = 0
+        average_salary = 0
+    return {'vacancies_found': f'{vacancies_found}',
+            'vacancies_processed': f'{vacancies_processed}',
+            'average_salary': f'{average_salary}'
+            }
 
 
 def calculate_average_wage(salary_from, salary_to):
@@ -175,9 +191,9 @@ def get_hh_vacancies(search_text, town=1):
         params = {'text': f'{search_text}', 'search_field': 'name', 'area': town, 'page': page}
         response = requests.get(url, params=params)
         response.raise_for_status()
-        vacancy = response.json()
-        all_vacancies.append(vacancy)
-        if page >= vacancy['pages'] - 1:
+        vacancy_page = response.json()
+        all_vacancies.append(vacancy_page)
+        if page >= vacancy_page['pages'] - 1:
             break
     return all_vacancies
 
