@@ -21,7 +21,7 @@ terminaltables == 3.1.10
 
 Можно установить командой  
 ``` 
-PIP install -r requirement.txt
+PIP install -r requirements.txt
 ```
 
 # Пример запуск скрипта
